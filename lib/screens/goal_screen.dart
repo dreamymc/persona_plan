@@ -1,5 +1,7 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:persona_plan/db_helper.dart';
+import 'package:persona_plan/screens/home_screen.dart';
 
 class GoalScreen extends StatefulWidget {
   final String username;
@@ -24,7 +26,8 @@ class _GoalScreenState extends State<GoalScreen> {
     return await dbHelper.getGoals(widget.username);
   }
 
-  void _displayGoalInformation(BuildContext context, Map<String, dynamic> goal) {
+  void _displayGoalInformation(
+      BuildContext context, Map<String, dynamic> goal) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -79,26 +82,28 @@ class _GoalScreenState extends State<GoalScreen> {
               ),
               DropdownButtonFormField<String>(
                 value: newStatus,
-                items: ['Pending', 'InProgress', 'Completed'] // Ensure unique values
+                items: [
+                  'Pending',
+                  'InProgress',
+                  'Completed'
+                ] // Ensure unique values
                     .map((String value) {
-                      return DropdownMenuItem<String>(
-                        value: value,
-                        child: Text(value),
-                      );
-                    })
-                    .toList(),
+                  return DropdownMenuItem<String>(
+                    value: value,
+                    child: Text(value),
+                  );
+                }).toList(),
                 onChanged: (value) => newStatus = value ?? newStatus,
               ),
               DropdownButtonFormField<String>(
                 value: newCategory,
                 items: ['Personal', 'School', 'Work', 'Others']
                     .map((String value) {
-                      return DropdownMenuItem<String>(
-                        value: value,
-                        child: Text(value),
-                      );
-                    })
-                    .toList(),
+                  return DropdownMenuItem<String>(
+                    value: value,
+                    child: Text(value),
+                  );
+                }).toList(),
                 onChanged: (value) => newCategory = value ?? newCategory,
               ),
             ],
@@ -139,112 +144,112 @@ class _GoalScreenState extends State<GoalScreen> {
         title: Text('Goals'),
         flexibleSpace: Container(
           decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            const Color.fromARGB(255, 205, 147, 216),
-            Colors.purple,
-          ],
-        ),
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [const Color.fromARGB(255, 255, 255, 255), const Color.fromARGB(255, 250, 253, 255)],
+            ),
           ),
         ),
       ),
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Colors.purple,
-              Color.fromARGB(255, 134, 202, 245),
-            ],
+      body: Stack(
+        children: [
+          CustomPaint(
+            size: Size.infinite,
+            painter: RandomShapesPainter(),
           ),
-        ),
-        child: FutureBuilder<List<Map<String, dynamic>>>(
-          future: _goalsFuture,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return Center(
-                child: CircularProgressIndicator(),
-              );
-            } else if (snapshot.hasError) {
-              return Center(
-                child: Text('Error: ${snapshot.error}'),
-              );
-            } else {
-              final goals = snapshot.data ?? [];
-              return ListView.builder(
-  itemCount: goals.length,
-  itemBuilder: (context, index) {
-    final goal = goals[index];
-    return Container(
-      decoration: BoxDecoration(
-        border: Border.all(color: Colors.white.withOpacity(0.2)), // Light border color
-      ),
-      child: GestureDetector(
-        onTap: () {
-          _displayGoalInformation(context, goal);
-        },
-        child: ListTile(
-          title: Text(goal['goal_name']),
-          trailing: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              IconButton(
-                icon: Icon(Icons.edit),
-                onPressed: () {
-                  // Handle edit
-                  _editGoal(context, goal);
-                },
-              ),
-              IconButton(
-                icon: Icon(Icons.delete),
-                onPressed: () async {
-                  // Show confirmation dialog
-                  final confirmDelete = await showDialog(
-                    context: context,
-                    builder: (context) => AlertDialog(
-                      title: Text('Confirm Delete'),
-                      content: Text('Are you sure you want to delete this goal?'),
-                      actions: [
-                        TextButton(
-                          onPressed: () {
-                            Navigator.of(context).pop(false); // Dismiss the dialog with false
-                          },
-                          child: Text('Cancel'),
-                        ),
-                        TextButton(
-                          onPressed: () {
-                            Navigator.of(context).pop(true); // Dismiss the dialog with true
-                          },
-                          child: Text('Delete'),
-                        ),
-                      ],
-                    ),
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: 16.0),
+            decoration: BoxDecoration(
+              color: Colors.transparent,
+            ),
+            child: FutureBuilder<List<Map<String, dynamic>>>(
+              future: _goalsFuture,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return Center(
+                    child: CircularProgressIndicator(),
                   );
-                  // Delete goal if confirmed
-                  if (confirmDelete == true) {
-                    final dbHelper = DatabaseHelper.instance;
-                    await dbHelper.deleteGoal(goal['goal_id']);
-                    setState(() {
-                      _goalsFuture = _getGoals(); // Refresh the goal list
-                    });
-                  }
-                },
-              ),
-            ],
+                } else if (snapshot.hasError) {
+                  return Center(
+                    child: Text('Error: ${snapshot.error}'),
+                  );
+                } else {
+                  final goals = snapshot.data ?? [];
+                  return ListView.builder(
+                    itemCount: goals.length,
+                    itemBuilder: (context, index) {
+                      final goal = goals[index];
+                      return Container(
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                              color: Colors.white
+                                  .withOpacity(0.2)), // Light border color
+                        ),
+                        child: GestureDetector(
+                          onTap: () {
+                            _displayGoalInformation(context, goal);
+                          },
+                          child: ListTile(
+                            title: Text(goal['goal_name']),
+                            trailing: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                IconButton(
+                                  icon: Icon(Icons.edit),
+                                  onPressed: () {
+                                    _editGoal(context, goal);
+                                  },
+                                ),
+                                IconButton(
+                                  icon: Icon(Icons.delete),
+                                  onPressed: () async {
+                                    final confirmDelete = await showDialog(
+                                      context: context,
+                                      builder: (context) => AlertDialog(
+                                        title: Text('Confirm Delete'),
+                                        content: Text(
+                                            'Are you sure you want to delete this goal?'),
+                                        actions: [
+                                          TextButton(
+                                            onPressed: () {
+                                              Navigator.of(context).pop(false);
+                                            },
+                                            child: Text('Cancel'),
+                                          ),
+                                          TextButton(
+                                            onPressed: () {
+                                              Navigator.of(context).pop(true);
+                                            },
+                                            child: Text('Delete'),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                    if (confirmDelete == true) {
+                                      final dbHelper = DatabaseHelper.instance;
+                                      await dbHelper
+                                          .deleteGoal(goal['goal_id']);
+                                      setState(() {
+                                        _goalsFuture = _getGoals();
+                                      });
+                                    }
+                                  },
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  );
+                }
+              },
+            ),
           ),
-        ),
-      ),
-    );
-  },
-);
-
-            }
-          },
-        ),
+        ],
       ),
     );
   }
 }
+

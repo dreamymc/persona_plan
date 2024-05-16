@@ -6,6 +6,7 @@ import 'task_screen.dart';
 import 'goal_screen.dart';
 import 'about_screen.dart';
 import 'login_screen.dart'; // Import login screen to navigate back
+import 'dart:math';
 
 class HomeScreen extends StatefulWidget {
   final String username;
@@ -107,21 +108,30 @@ class _HomeScreenState extends State<HomeScreen> {
         title: Text('PersonaPlan'),
         actions: <Widget>[
           IconButton(
-        icon: Icon(Icons.logout),
-        onPressed: _logout, // Call logout function when button is pressed
+            icon: Icon(Icons.logout),
+            onPressed: _logout, // Call logout function when button is pressed
           ),
         ],
         flexibleSpace: Container(
-          decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [Colors.blue, const Color.fromARGB(255, 205, 147, 216)],
-        ),
-          ),
+            decoration: BoxDecoration(
+            color: Color.fromARGB(255, 168, 106, 255),
+            ),
         ),
       ),
-      body: _widgetOptions(widget.username).elementAt(_selectedIndex),
+      body: Stack(
+        children: [
+          Container(
+            decoration: BoxDecoration(
+              color: Color.fromARGB(255, 255, 250, 255),
+            ),
+          ),
+          CustomPaint(
+            size: Size.infinite,
+            painter: RandomShapesPainter(),
+          ),
+          _widgetOptions(widget.username).elementAt(_selectedIndex),
+        ],
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showAddDialog(context),
         child: Icon(Icons.add),
@@ -129,26 +139,26 @@ class _HomeScreenState extends State<HomeScreen> {
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
-        icon: Icon(Icons.home, color: Colors.blue),
-        label: 'Home',
+            icon: Icon(Icons.home, color: Colors.blue),
+            label: 'Home',
           ),
           BottomNavigationBarItem(
-        icon: Icon(Icons.task, color: Colors.blue),
-        label: 'Tasks',
+            icon: Icon(Icons.task, color: Colors.blue),
+            label: 'Tasks',
           ),
           BottomNavigationBarItem(
-        icon: Icon(Icons.flag, color: Colors.blue),
-        label: 'Goals',
+            icon: Icon(Icons.flag, color: Colors.blue),
+            label: 'Goals',
           ),
           BottomNavigationBarItem(
-        icon: Icon(Icons.info, color: Colors.blue),
-        label: 'About',
+            icon: Icon(Icons.info, color: Colors.blue),
+            label: 'About',
           ),
         ],
         currentIndex: _selectedIndex,
         selectedItemColor: Colors.blue,
         onTap: _onItemTapped,
-        backgroundColor: Color.fromARGB(255, 212, 157, 255),
+        backgroundColor: Color.fromARGB(255, 255, 255, 255),
         type: BottomNavigationBarType.fixed,
         selectedFontSize: 14,
         unselectedFontSize: 14,
@@ -162,37 +172,38 @@ class _HomeScreenState extends State<HomeScreen> {
 }
 
 class Home extends StatelessWidget {
-  String username;
+  final String username;
 
   Home({required this.username});
 
   Future<int> _getTaskCount() async {
     final dbHelper = DatabaseHelper.instance;
-    print("task user:" + username);
     return await dbHelper.getTaskCount(username);
   }
 
   Future<int> _getGoalCount() async {
     final dbHelper = DatabaseHelper.instance;
-    print("goal user:" + username);
     return await dbHelper.getGoalCount(username);
   }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [Colors.purple[200]!, Colors.lightBlue[200]!],
-        ),
-      ),
+    return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          SizedBox(height: 20),
-          Text('Welcome, $username!', style: TextStyle(fontSize: 24)),
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                border: Border.all(color: Colors.white),
+                borderRadius: BorderRadius.circular(100.0),
+              ),
+              padding: EdgeInsets.all(5.0),
+              child: Text(
+                'Welcome, ${username.substring(0, 1).toUpperCase()}${username.substring(1)}!',
+                style: TextStyle(fontSize: 24),
+              ),
+            ),
           SizedBox(height: 20),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -207,12 +218,8 @@ class Home extends StatelessWidget {
                   } else {
                     return Container(
                       decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [const Color.fromARGB(255, 226, 168, 236), Color.fromARGB(255, 8, 144, 255)], // Change gradient colors for task count
-                        ),
-                        border: Border.all(color: Colors.black),
+                        color: Colors.blue,
+                        border: Border.all(color: Colors.white),
                         borderRadius: BorderRadius.circular(10.0),
                       ),
                       padding: EdgeInsets.all(10.0),
@@ -235,12 +242,8 @@ class Home extends StatelessWidget {
                   } else {
                     return Container(
                       decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [const Color.fromARGB(255, 77, 148, 207), const Color.fromARGB(255, 241, 161, 255)], // Change gradient colors for goal count
-                        ),
-                        border: Border.all(color: Colors.black),
+                        color: Color.fromARGB(255, 241, 161, 255),
+                        border: Border.all(color: Colors.white),
                         borderRadius: BorderRadius.circular(10.0),
                       ),
                       padding: EdgeInsets.all(10.0),
@@ -257,5 +260,72 @@ class Home extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+class RandomShapesPainter extends CustomPainter {
+  List<Offset> lineCoordinates = [];
+  List<Rect> rectangles = [];
+  List<Offset> circleCenters = [];
+  List<double> circleRadii = [];
+
+  RandomShapesPainter() {
+    final random = Random();
+
+    // Generate random lines spanning across the screen
+    for (int i = 0; i < 5; i++) {
+      final startX = 0.0;
+      final startY = random.nextDouble() * 400; // Adjust according to your screen size
+      final endX = 400.0; // Adjust according to your screen size
+      final endY = random.nextDouble() * 400; // Adjust according to your screen size
+      lineCoordinates.add(Offset(startX, startY));
+      lineCoordinates.add(Offset(endX, endY));
+    }
+
+    // Generate random rectangles
+    for (int i = 0; i < 3; i++) {
+      final left = random.nextDouble() * 400; // Adjust according to your screen size
+      final top = random.nextDouble() * 400; // Adjust according to your screen size
+      final right = left + random.nextDouble() * 100;
+      final bottom = top + random.nextDouble() * 100;
+      rectangles.add(Rect.fromLTRB(left, top, right, bottom));
+    }
+
+    // Generate random circles
+    for (int i = 0; i < 3; i++) {
+      final centerX = random.nextDouble() * 400; // Adjust according to your screen size
+      final centerY = random.nextDouble() * 400; // Adjust according to your screen size
+      final radius = random.nextDouble() * 50;
+      circleCenters.add(Offset(centerX, centerY));
+      circleRadii.add(radius);
+    }
+  }
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.black
+      ..strokeWidth = 2
+      ..style = PaintingStyle.stroke;
+
+    // Draw lines
+    for (int i = 0; i < lineCoordinates.length; i += 2) {
+      canvas.drawLine(lineCoordinates[i], lineCoordinates[i + 1], paint);
+    }
+
+    // Draw rectangles
+    for (final rect in rectangles) {
+      canvas.drawRect(rect, paint);
+    }
+
+    // Draw circles
+    for (int i = 0; i < circleCenters.length; i++) {
+      canvas.drawCircle(circleCenters[i], circleRadii[i], paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) {
+    return false;
   }
 }
