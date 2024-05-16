@@ -1,7 +1,6 @@
-import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:persona_plan/db_helper.dart';
-import 'package:persona_plan/screens/home_screen.dart';
+import 'home_screen.dart';
 
 class GoalScreen extends StatefulWidget {
   final String username;
@@ -57,85 +56,98 @@ class _GoalScreenState extends State<GoalScreen> {
   }
 
   void _editGoal(BuildContext context, Map<String, dynamic> goal) {
-    String newGoalName = goal['goal_name'];
-    String newDeadline = goal['deadline'];
-    String newStatus = goal['status'];
-    String newCategory = goal['category'];
+  String newGoalName = goal['goal_name'];
+  DateTime newDeadline = DateTime.parse(goal['deadline']);
+  String newStatus = goal['status'];
+  String newCategory = goal['category'];
 
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Edit Goal'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                decoration: InputDecoration(labelText: 'Goal Name'),
-                onChanged: (value) => newGoalName = value,
-                controller: TextEditingController(text: goal['goal_name']),
-              ),
-              TextField(
-                decoration: InputDecoration(labelText: 'Deadline'),
-                onChanged: (value) => newDeadline = value,
-                controller: TextEditingController(text: goal['deadline']),
-              ),
-              DropdownButtonFormField<String>(
-                value: newStatus,
-                items: [
-                  'Pending',
-                  'InProgress',
-                  'Completed'
-                ] // Ensure unique values
-                    .map((String value) {
-                  return DropdownMenuItem<String>(
-                    value: value,
-                    child: Text(value),
-                  );
-                }).toList(),
-                onChanged: (value) => newStatus = value ?? newStatus,
-              ),
-              DropdownButtonFormField<String>(
-                value: newCategory,
-                items: ['Personal', 'School', 'Work', 'Others']
-                    .map((String value) {
-                  return DropdownMenuItem<String>(
-                    value: value,
-                    child: Text(value),
-                  );
-                }).toList(),
-                onChanged: (value) => newCategory = value ?? newCategory,
-              ),
-            ],
-          ),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: Text('Cancel'),
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: Text('Edit Goal'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              decoration: InputDecoration(labelText: 'Goal Name'),
+              onChanged: (value) => newGoalName = value,
+              controller: TextEditingController(text: goal['goal_name']),
             ),
-            TextButton(
+            ElevatedButton(
               onPressed: () async {
-                final dbHelper = DatabaseHelper.instance;
-                await dbHelper.updateGoal(goal['goal_id'], {
-                  'goal_name': newGoalName,
-                  'deadline': newDeadline,
-                  'status': newStatus,
-                  'category': newCategory,
-                });
-                setState(() {
-                  _goalsFuture = _getGoals();
-                });
-                Navigator.of(context).pop();
+                final selectedDate = await showDatePicker(
+                  context: context,
+                  initialDate: newDeadline,
+                  firstDate: DateTime.now(),
+                  lastDate: DateTime(2100),
+                );
+                if (selectedDate != null) {
+                  setState(() {
+                    newDeadline = selectedDate;
+                  });
+                }
               },
-              child: Text('Save'),
+              child: Text('Select New Deadline'),
+            ),
+            Text('Current deadline is: ${newDeadline.toString()}'),
+            DropdownButtonFormField<String>(
+              value: newStatus,
+              items: [
+                'Pending',
+                'InProgress',
+                'Completed'
+              ] // Ensure unique values
+                  .map((String value) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: Text(value),
+                );
+              }).toList(),
+              onChanged: (value) => newStatus = value ?? newStatus,
+            ),
+            DropdownButtonFormField<String>(
+              value: newCategory,
+              items: ['Personal', 'School', 'Work', 'Others']
+                  .map((String value) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: Text(value),
+                );
+              }).toList(),
+              onChanged: (value) => newCategory = value ?? newCategory,
             ),
           ],
-        );
-      },
-    );
-  }
+        ),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () async {
+              final dbHelper = DatabaseHelper.instance;
+              await dbHelper.updateGoal(goal['goal_id'], {
+                'goal_name': newGoalName,
+                'deadline': newDeadline.toString(),
+                'status': newStatus,
+                'category': newCategory,
+              });
+              setState(() {
+                _goalsFuture = _getGoals();
+              });
+              Navigator.of(context).pop();
+            },
+            child: Text('Save'),
+          ),
+        ],
+      );
+    },
+  );
+}
+
 
   @override
   Widget build(BuildContext context) {
@@ -144,11 +156,7 @@ class _GoalScreenState extends State<GoalScreen> {
         title: Text('Goals'),
         flexibleSpace: Container(
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [const Color.fromARGB(255, 255, 255, 255), const Color.fromARGB(255, 250, 253, 255)],
-            ),
+            color: Colors.white,
           ),
         ),
       ),
@@ -184,7 +192,7 @@ class _GoalScreenState extends State<GoalScreen> {
                         decoration: BoxDecoration(
                           border: Border.all(
                               color: Colors.white
-                                  .withOpacity(0.2)), // Light border color
+                                  .withOpacity(0.0)), // Light border color
                         ),
                         child: GestureDetector(
                           onTap: () {
@@ -252,4 +260,3 @@ class _GoalScreenState extends State<GoalScreen> {
     );
   }
 }
-

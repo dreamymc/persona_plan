@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:persona_plan/db_helper.dart';
 import '../add_task_screen.dart';
@@ -6,7 +8,6 @@ import 'task_screen.dart';
 import 'goal_screen.dart';
 import 'about_screen.dart';
 import 'login_screen.dart'; // Import login screen to navigate back
-import 'dart:math';
 
 class HomeScreen extends StatefulWidget {
   final String username;
@@ -113,9 +114,9 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
         flexibleSpace: Container(
-            decoration: BoxDecoration(
+          decoration: BoxDecoration(
             color: Color.fromARGB(255, 168, 106, 255),
-            ),
+          ),
         ),
       ),
       body: Stack(
@@ -192,18 +193,16 @@ class Home extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-            Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                border: Border.all(color: Colors.white),
-                borderRadius: BorderRadius.circular(100.0),
-              ),
-              padding: EdgeInsets.all(5.0),
-              child: Text(
-                'Welcome, ${username.substring(0, 1).toUpperCase()}${username.substring(1)}!',
-                style: TextStyle(fontSize: 24),
-              ),
+          Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(100.0),
             ),
+            padding: EdgeInsets.all(5.0),
+            child: Text(
+              'Welcome, ${username.substring(0, 1).toUpperCase()}${username.substring(1)}!',
+              style: TextStyle(fontSize: 24),
+            ),
+          ),
           SizedBox(height: 20),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -271,30 +270,30 @@ class RandomShapesPainter extends CustomPainter {
 
   RandomShapesPainter() {
     final random = Random();
+    final screenSizeApprox = 800;
 
-    // Generate random lines spanning across the screen
     for (int i = 0; i < 5; i++) {
-      final startX = 0.0;
-      final startY = random.nextDouble() * 400; // Adjust according to your screen size
-      final endX = 400.0; // Adjust according to your screen size
-      final endY = random.nextDouble() * 400; // Adjust according to your screen size
+      final startX = -50.0;
+      final startY = random.nextDouble() * screenSizeApprox;
+      final endX = screenSizeApprox + .0;
+      final endY = random.nextDouble() * screenSizeApprox;
       lineCoordinates.add(Offset(startX, startY));
       lineCoordinates.add(Offset(endX, endY));
     }
 
     // Generate random rectangles
     for (int i = 0; i < 3; i++) {
-      final left = random.nextDouble() * 400; // Adjust according to your screen size
-      final top = random.nextDouble() * 400; // Adjust according to your screen size
-      final right = left + random.nextDouble() * 100;
-      final bottom = top + random.nextDouble() * 100;
+      final left = random.nextDouble() * screenSizeApprox;
+      final top = random.nextDouble() * screenSizeApprox;
+      final right = left + random.nextDouble() * screenSizeApprox;
+      final bottom = top + random.nextDouble() * screenSizeApprox;
       rectangles.add(Rect.fromLTRB(left, top, right, bottom));
     }
 
     // Generate random circles
     for (int i = 0; i < 3; i++) {
-      final centerX = random.nextDouble() * 400; // Adjust according to your screen size
-      final centerY = random.nextDouble() * 400; // Adjust according to your screen size
+      final centerX = random.nextDouble() * screenSizeApprox;
+      final centerY = random.nextDouble() * screenSizeApprox;
       final radius = random.nextDouble() * 50;
       circleCenters.add(Offset(centerX, centerY));
       circleRadii.add(radius);
@@ -304,21 +303,18 @@ class RandomShapesPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = Colors.black
-      ..strokeWidth = 2
+      ..color = Color.fromARGB(44, 0, 0, 0)
+      ..strokeWidth = 200
       ..style = PaintingStyle.stroke;
 
-    // Draw lines
     for (int i = 0; i < lineCoordinates.length; i += 2) {
       canvas.drawLine(lineCoordinates[i], lineCoordinates[i + 1], paint);
     }
 
-    // Draw rectangles
     for (final rect in rectangles) {
       canvas.drawRect(rect, paint);
     }
 
-    // Draw circles
     for (int i = 0; i < circleCenters.length; i++) {
       canvas.drawCircle(circleCenters[i], circleRadii[i], paint);
     }

@@ -1,7 +1,6 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:persona_plan/db_helper.dart';
+import 'package:persona_plan/screens/home_screen.dart';
 
 class TaskScreen extends StatefulWidget {
   final String username;
@@ -48,7 +47,7 @@ class _TaskScreenState extends State<TaskScreen> {
               children: [
                 AppBar(
                   title: Text('Tasks'),
-                  backgroundColor: Colors.transparent,
+                  backgroundColor: Color.fromARGB(255, 255, 255, 255),
                   elevation: 0,
                 ),
                 Expanded(
@@ -77,7 +76,7 @@ class _TaskScreenState extends State<TaskScreen> {
                             bool isCompleted = task['status'] == 'Completed';
 
                             return Container(
-                              color: Colors.white,
+                              color: const Color.fromARGB(0, 255, 255, 255),
                               child: ExpansionTile(
                                 title: Text(
                                   task['task_name'],
@@ -85,21 +84,27 @@ class _TaskScreenState extends State<TaskScreen> {
                                     fontWeight: FontWeight.bold,
                                     color: isCompleted
                                         ? Colors.green
-                                        : (isDueDateRed ? Colors.red : Colors.black45),
+                                        : (isDueDateRed
+                                            ? Colors.red
+                                            : Colors.black45),
                                   ),
                                 ),
                                 children: [
                                   Container(
-                                    color: Colors.white,
+                                    color: Color.fromARGB(0, 255, 255, 255),
                                     child: ListTile(
-                                      title: Text('Description: ${task['task_description']}'),
+                                      title: Text(
+                                          'Description: ${task['task_description']}'),
                                       subtitle: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
                                         children: [
                                           Text(
                                             'Due Date: ${task['due_date']}',
                                             style: TextStyle(
-                                              color: isDueDateRed ? Colors.red : Colors.white,
+                                              color: isDueDateRed
+                                                  ? Colors.red
+                                                  : Colors.white,
                                             ),
                                           ),
                                           Text(
@@ -116,22 +121,204 @@ class _TaskScreenState extends State<TaskScreen> {
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
                                     IconButton(
-                                      icon: Icon(Icons.edit, color: Color.fromARGB(255, 98, 0, 255)),
+                                      icon: Icon(Icons.edit),
                                       onPressed: () {
-                                        // Edit task logic
+                                        showDialog(
+                                          context: context,
+                                          builder: (BuildContext context) {
+                                            String newTaskName =
+                                                task['task_name'];
+                                            String newDescription =
+                                                task['task_description'];
+                                            String newDueDate =
+                                                task['due_date'];
+                                            int newPriority = task['priority'];
+                                            String newStatus = task['status'];
+                                            String newCategory =
+                                                task['category'];
+
+                                            return AlertDialog(
+                                              title: Text('Edit Task'),
+                                              content: Column(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  TextField(
+                                                    decoration: InputDecoration(
+                                                        labelText: 'Task Name'),
+                                                    onChanged: (value) =>
+                                                        newTaskName = value,
+                                                    controller:
+                                                        TextEditingController(
+                                                            text: task[
+                                                                'task_name']),
+                                                  ),
+                                                  TextField(
+                                                    decoration: InputDecoration(
+                                                        labelText:
+                                                            'Description'),
+                                                    onChanged: (value) =>
+                                                        newDescription = value,
+                                                    controller:
+                                                        TextEditingController(
+                                                            text: task[
+                                                                'task_description']),
+                                                  ),
+                                                  TextField(
+                                                    decoration: InputDecoration(
+                                                        labelText: 'Due Date'),
+                                                    controller:
+                                                        TextEditingController(
+                                                            text: task[
+                                                                'due_date']),
+                                                    onTap: () async {
+                                                      DateTime? pickedDate =
+                                                          await showDatePicker(
+                                                        context: context,
+                                                        initialDate:
+                                                            DateTime.parse(task[
+                                                                'due_date']),
+                                                        firstDate:
+                                                            DateTime.now(),
+                                                        lastDate: DateTime(
+                                                            DateTime.now()
+                                                                    .year +
+                                                                5),
+                                                      );
+                                                      if (pickedDate != null) {
+                                                        setState(() {
+                                                          newDueDate =
+                                                              pickedDate
+                                                                  .toString();
+                                                        });
+                                                      }
+                                                    }
+                                                    ,
+                                                    
+                                                  ),
+                                                  DropdownButtonFormField<
+                                                      String>(
+                                                    value: newStatus,
+                                                    items: [
+                                                      'ToDo',
+                                                      'Pending',
+                                                      'Completed'
+                                                    ].map((String value) {
+                                                      return DropdownMenuItem<
+                                                          String>(
+                                                        value: value,
+                                                        child: Text(value),
+                                                      );
+                                                    }).toList(),
+                                                    onChanged: (value) =>
+                                                        newStatus =
+                                                            value ?? newStatus,
+                                                  ),
+                                                  DropdownButtonFormField<
+                                                      String>(
+                                                    value: newCategory,
+                                                    items: [
+                                                      'Personal',
+                                                      'School',
+                                                      'Work',
+                                                      'Others'
+                                                    ] // Check this list for duplicates or mismatches with newCategory
+                                                        .map((String value) {
+                                                      return DropdownMenuItem<
+                                                          String>(
+                                                        value: value,
+                                                        child: Text(value),
+                                                      );
+                                                    }).toList(),
+                                                    onChanged: (value) =>
+                                                        newCategory = value ??
+                                                            newCategory,
+                                                  ),
+                                                ],
+                                              ),
+                                              actions: <Widget>[
+                                                TextButton(
+                                                  onPressed: () {
+                                                    Navigator.of(context).pop();
+                                                  },
+                                                  child: Text('Cancel'),
+                                                ),
+                                                TextButton(
+                                                  onPressed: () async {
+                                                    final dbHelper =
+                                                        DatabaseHelper.instance;
+                                                    await dbHelper.updateTask(
+                                                        task['task_id'], {
+                                                      'task_name': newTaskName,
+                                                      'task_description':
+                                                          newDescription,
+                                                      'due_date': newDueDate,
+                                                      'priority': newPriority,
+                                                      'status': newStatus,
+                                                      'category': newCategory,
+                                                    });
+                                                    setState(() {
+                                                      _tasksFuture =
+                                                          _getTasks();
+                                                    });
+                                                    Navigator.of(context).pop();
+                                                  },
+                                                  child: Text('Save'),
+                                                ),
+                                              ],
+                                            );
+                                          },
+                                        );
                                       },
                                     ),
                                     IconButton(
-                                      icon: Icon(Icons.delete, color: const Color.fromARGB(255, 255, 0, 0)),
-                                      onPressed: () {
-                                        // Delete task logic
+                                      icon: Icon(Icons.delete),
+                                      onPressed: () async {
+                                        final confirmDelete = await showDialog(
+                                          context: context,
+                                          builder: (context) => AlertDialog(
+                                            title: Text('Confirm Delete'),
+                                            content: Text(
+                                                'Are you sure you want to delete this task?'),
+                                            actions: [
+                                              TextButton(
+                                                onPressed: () {
+                                                  Navigator.of(context)
+                                                      .pop(false);
+                                                },
+                                                child: Text('Cancel'),
+                                              ),
+                                              TextButton(
+                                                onPressed: () {
+                                                  Navigator.of(context)
+                                                      .pop(true);
+                                                },
+                                                child: Text('Delete'),
+                                              ),
+                                            ],
+                                          ),
+                                        );
+                                        if (confirmDelete == true) {
+                                          final dbHelper =
+                                              DatabaseHelper.instance;
+                                          await dbHelper
+                                              .deleteTask(task['task_id']);
+                                          setState(() {
+                                            _tasksFuture = _getTasks();
+                                          });
+                                        }
                                       },
                                     ),
                                     if (!isCompleted)
                                       IconButton(
-                                        icon: Icon(Icons.check_circle, color: Colors.green),
-                                        onPressed: () {
-                                          // Mark task as completed logic
+                                        icon: Icon(Icons.check_circle),
+                                        onPressed: () async {
+                                          final dbHelper =
+                                              DatabaseHelper.instance;
+                                          await dbHelper.updateTaskStatus(
+                                              task['task_id'], 'Completed');
+                                          setState(() {
+                                            _tasksFuture = _getTasks();
+                                          });
                                         },
                                       ),
                                   ],
@@ -150,78 +337,5 @@ class _TaskScreenState extends State<TaskScreen> {
         ],
       ),
     );
-  }
-}
-
-class RandomShapesPainter extends CustomPainter {
-  List<Offset> lineCoordinates = [];
-  List<Rect> rectangles = [];
-  List<Offset> circleCenters = [];
-  List<double> circleRadii = [];
-
-  RandomShapesPainter() {
-    final random = Random();
-
-    // Generate random lines spanning across the screen
-    for (int i = 0; i < 5; i++) {
-      final startX = 0.0;
-      final startY =
-          random.nextDouble() * 400; // Adjust according to your screen size
-      final endX = 400.0; // Adjust according to your screen size
-      final endY =
-          random.nextDouble() * 400; // Adjust according to your screen size
-      lineCoordinates.add(Offset(startX, startY));
-      lineCoordinates.add(Offset(endX, endY));
-    }
-
-    // Generate random rectangles
-    for (int i = 0; i < 3; i++) {
-      final left =
-          random.nextDouble() * 400; // Adjust according to your screen size
-      final top =
-          random.nextDouble() * 400; // Adjust according to your screen size
-      final right = left + random.nextDouble() * 100;
-      final bottom = top + random.nextDouble() * 100;
-      rectangles.add(Rect.fromLTRB(left, top, right, bottom));
-    }
-
-    // Generate random circles
-    for (int i = 0; i < 3; i++) {
-      final centerX =
-          random.nextDouble() * 400; // Adjust according to your screen size
-      final centerY =
-          random.nextDouble() * 400; // Adjust according to your screen size
-      final radius = random.nextDouble() * 50;
-      circleCenters.add(Offset(centerX, centerY));
-      circleRadii.add(radius);
-    }
-  }
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = Colors.black
-      ..strokeWidth = 2
-      ..style = PaintingStyle.stroke;
-
-    // Draw lines
-    for (int i = 0; i < lineCoordinates.length; i += 2) {
-      canvas.drawLine(lineCoordinates[i], lineCoordinates[i + 1], paint);
-    }
-
-    // Draw rectangles
-    for (final rect in rectangles) {
-      canvas.drawRect(rect, paint);
-    }
-
-    // Draw circles
-    for (int i = 0; i < circleCenters.length; i++) {
-      canvas.drawCircle(circleCenters[i], circleRadii[i], paint);
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) {
-    return false;
   }
 }
